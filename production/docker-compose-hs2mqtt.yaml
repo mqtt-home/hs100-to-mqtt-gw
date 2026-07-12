@@ -1,0 +1,15 @@
+# Drop-in replacement for the old `hs2mqtt` block. Requires
+# `./config/hs2mqtt/config.json` on the homeserver and a `MQTT_PASSWORD`
+# env var exported into the docker-compose environment (e.g. via a
+# `.env` file next to docker-compose.yaml, or `MQTT_PASSWORD=... docker
+# compose up`). The value is passed through into the container where
+# the config's `${MQTT_PASSWORD}` placeholder gets substituted at load.
+hs2mqtt:
+  image: ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest
+  container_name: hs2mqtt
+  volumes:
+    - ./config/hs2mqtt/config.json:/var/lib/hs2mqtt/config.json:ro
+  environment:
+    - MQTT_PASSWORD=${MQTT_PASSWORD}
+  networks: [mosquitto]
+  restart: always

@@ -1,0 +1,5 @@
+/app/hs2mqtt
+/app/dist/
+/app/coverage.out
+/production/config/config.json
+.DS_Store

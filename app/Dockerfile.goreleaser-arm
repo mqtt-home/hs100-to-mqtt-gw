@@ -1,0 +1,8 @@
+FROM scratch
+
+COPY hs2mqtt /hs2mqtt
+
+USER 65534:65534
+
+ENTRYPOINT ["/hs2mqtt"]
+CMD ["/var/lib/hs2mqtt/config.json"]

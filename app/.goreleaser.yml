@@ -1,0 +1,101 @@
+project_name: hs2mqtt
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: hs2mqtt
+    main: ./
+    binary: hs2mqtt
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+    goarm:
+      - "7"
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/mqtt-home/hs100-to-mqtt-gw/version.Version={{.Version}} -X github.com/mqtt-home/hs100-to-mqtt-gw/version.GitCommit={{.Commit}} -X github.com/mqtt-home/hs100-to-mqtt-gw/version.BuildTime={{.Date}}
+
+archives:
+  - id: hs2mqtt
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "arm" }}armv{{ .Arm }}
+      {{- else }}{{ .Arch }}{{ end }}
+
+dockers:
+  - image_templates:
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest-amd64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    skip_push: false
+
+  - image_templates:
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Major }}.{{ .Minor }}-armv7"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest-armv7"
+    dockerfile: Dockerfile.goreleaser-arm
+    use: buildx
+    goos: linux
+    goarch: arm
+    goarm: "7"
+    build_flag_templates:
+      - "--platform=linux/arm/v7"
+    skip_push: false
+
+docker_manifests:
+  - id: tag
+    name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}"
+    image_templates:
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+
+  - id: major-minor
+    name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+
+  - id: latest
+    name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest"
+    image_templates:
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - "Merge pull request"
+      - "Merge branch"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next-{{ .ShortCommit }}"
+
+release:
+  disable: false
+  mode: replace
+  draft: false
+  prerelease: auto
+  make_latest: '{{ if .Prerelease }}false{{ else }}true{{ end }}'
+  skip_upload: true

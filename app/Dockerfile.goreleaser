@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1.24
+
+# Final stage - only for the binary. GoReleaser drops the pre-built
+# hs2mqtt binary into the build context.
+FROM gcr.io/distroless/static:nonroot
+
+WORKDIR /
+
+COPY hs2mqtt /hs2mqtt
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/hs2mqtt"]
+CMD ["/var/lib/hs2mqtt/config.json"]

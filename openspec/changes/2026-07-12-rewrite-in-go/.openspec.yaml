@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-07-12
+goal: Reimplement the NodeJS HS100toMQTT bridge as a Go project
+  mirroring hue-to-mqtt-gw / velux-mqtt-gw, with a hand-rolled TP-Link
+  Smart-Plug driver and runtime HS100/HS110 feature detection

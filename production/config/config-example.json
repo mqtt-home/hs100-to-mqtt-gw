@@ -1,0 +1,16 @@
+{
+    "mqtt": {
+        "url": "tcp://mosquitto:1883",
+        "username": "mosquitto",
+        "password": "${MQTT_PASSWORD}",
+        "topic": "hs100",
+        "retain": true,
+        "qos": 1
+    },
+    "polling-interval-seconds": 3,
+    "devices": [
+        { "host": "10.0.10.110", "name": "device-a" },
+        { "host": "10.0.10.160", "name": "device-b" }
+    ],
+    "loglevel": "info"
+}
