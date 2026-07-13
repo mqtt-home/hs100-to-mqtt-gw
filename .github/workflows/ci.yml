@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          check-latest: true
+
+      - name: Vet
+        working-directory: app
+        run: go vet ./...
+
+      - name: Test
+        working-directory: app
+        run: go test -race -cover ./...
+
+      - name: Build
+        working-directory: app
+        run: go build ./...
+
+      - name: golangci-lint
+        working-directory: app
+        run: go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run ./...
