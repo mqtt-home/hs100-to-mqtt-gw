@@ -13,7 +13,7 @@ CONFIG ?= $(PWD)/../production/config/config-example.json
 
 DOCKER_IMAGE_NAME = ghcr.io/mqtt-home/hs100-to-mqtt-gw:dev
 
-.PHONY: build test lint run docker clean deps version vet
+.PHONY: build test lint run docker clean deps version vet release-check release-snapshot release
 
 build:
 	@echo "Building $(BINARY_NAME)..."
@@ -54,3 +54,26 @@ version:
 	@echo "Version:    $(VERSION)"
 	@echo "Git Commit: $(GIT_COMMIT)"
 	@echo "Build Time: $(BUILD_TIME)"
+
+release-check:
+	@goreleaser check
+
+release-snapshot:
+	@echo "Building local snapshot (no publish)..."
+	@goreleaser release --snapshot --clean --skip=publish
+
+# Trigger a real release by tagging HEAD and pushing the tag; the GitHub
+# Actions Release workflow runs goreleaser. Usage: make release VERSION=v1.2.3
+release:
+	@if [ -z "$(RELEASE_VERSION)" ]; then \
+		echo "Usage: make release RELEASE_VERSION=vX.Y.Z"; exit 1; \
+	fi
+	@case "$(RELEASE_VERSION)" in v[0-9]*.[0-9]*.[0-9]*) ;; \
+		*) echo "RELEASE_VERSION must match vX.Y.Z, got '$(RELEASE_VERSION)'"; exit 1;; \
+	esac
+	@if git rev-parse "$(RELEASE_VERSION)" >/dev/null 2>&1; then \
+		echo "Tag $(RELEASE_VERSION) already exists"; exit 1; \
+	fi
+	@echo "Tagging $(RELEASE_VERSION) and pushing..."
+	@git tag -a "$(RELEASE_VERSION)" -m "Release $(RELEASE_VERSION)"
+	@git push origin "$(RELEASE_VERSION)"
