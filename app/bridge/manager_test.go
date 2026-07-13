@@ -86,16 +86,16 @@ func (f *fakeMQTT) snapshotMessages() []fakePublish {
 
 // fakePoller is a scripted Poller. Behaviour is driven by three fields.
 type fakePoller struct {
-	mu             sync.Mutex
-	relayOn        bool
-	feature        string // "TIM" or "TIM:ENE"
-	emeterOnAllPolls bool // controls whether the poller emits emeter when wantEmeter=true
+	mu               sync.Mutex
+	relayOn          bool
+	feature          string // "TIM" or "TIM:ENE"
+	emeterOnAllPolls bool   // controls whether the poller emits emeter when wantEmeter=true
 
 	// power reading the poller emits (fixed for tests)
 	powerW float64
 
 	// counters
-	pollCount    int
+	pollCount     int
 	setRelayCalls []bool
 	pollErr       error
 }

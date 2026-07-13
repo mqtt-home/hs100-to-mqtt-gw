@@ -173,11 +173,11 @@ func TestSwitchConfig_Payload(t *testing.T) {
 
 func TestSensorConfig_UnitsAndClasses(t *testing.T) {
 	cases := []struct {
-		m         Metric
-		unit      string
-		devClass  string
-		stateCls  string
-		valueKey  string
+		m        Metric
+		unit     string
+		devClass string
+		stateCls string
+		valueKey string
 	}{
 		{MetricPower, "W", "power", "measurement", "power_w"},
 		{MetricVoltage, "V", "voltage", "measurement", "voltage_v"},
