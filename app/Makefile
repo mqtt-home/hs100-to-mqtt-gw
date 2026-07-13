@@ -13,7 +13,7 @@ CONFIG ?= $(PWD)/../production/config/config-example.json
 
 DOCKER_IMAGE_NAME = ghcr.io/mqtt-home/hs100-to-mqtt-gw:dev
 
-.PHONY: build test lint run docker clean deps version vet release-check release-snapshot release
+.PHONY: build test lint run docker clean deps version vet release-check release-snapshot release-next release
 
 build:
 	@echo "Building $(BINARY_NAME)..."
@@ -62,18 +62,32 @@ release-snapshot:
 	@echo "Building local snapshot (no publish)..."
 	@goreleaser release --snapshot --clean --skip=publish
 
-# Trigger a real release by tagging HEAD and pushing the tag; the GitHub
-# Actions Release workflow runs goreleaser. Usage: make release VERSION=v1.2.3
+# svu computes the next semver from Conventional Commits since the latest tag:
+#   feat: -> minor, fix: -> patch, feat!: / BREAKING CHANGE -> major.
+# Install: go install github.com/caarlos0/svu/v3@latest
+SVU ?= svu
+
+release-next:
+	@command -v $(SVU) >/dev/null 2>&1 || { echo "svu not installed: go install github.com/caarlos0/svu/v3@latest"; exit 1; }
+	@echo "Current: $$($(SVU) current 2>/dev/null || echo none)"
+	@echo "Next:    $$($(SVU) next)"
+
+# Trigger a release by tagging HEAD and pushing; the GitHub Actions Release
+# workflow then runs goreleaser. Version is derived from Conventional Commits
+# via svu; override with RELEASE_VERSION=vX.Y.Z if needed.
 release:
-	@if [ -z "$(RELEASE_VERSION)" ]; then \
-		echo "Usage: make release RELEASE_VERSION=vX.Y.Z"; exit 1; \
+	@command -v $(SVU) >/dev/null 2>&1 || { echo "svu not installed: go install github.com/caarlos0/svu/v3@latest"; exit 1; }
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Working tree is dirty; commit or stash before releasing."; exit 1; \
 	fi
-	@case "$(RELEASE_VERSION)" in v[0-9]*.[0-9]*.[0-9]*) ;; \
-		*) echo "RELEASE_VERSION must match vX.Y.Z, got '$(RELEASE_VERSION)'"; exit 1;; \
-	esac
-	@if git rev-parse "$(RELEASE_VERSION)" >/dev/null 2>&1; then \
-		echo "Tag $(RELEASE_VERSION) already exists"; exit 1; \
-	fi
-	@echo "Tagging $(RELEASE_VERSION) and pushing..."
-	@git tag -a "$(RELEASE_VERSION)" -m "Release $(RELEASE_VERSION)"
-	@git push origin "$(RELEASE_VERSION)"
+	@version="$(RELEASE_VERSION)"; \
+	if [ -z "$$version" ]; then version="$$($(SVU) next)"; fi; \
+	case "$$version" in v[0-9]*.[0-9]*.[0-9]*) ;; \
+		*) echo "Version must match vX.Y.Z, got '$$version'"; exit 1;; \
+	esac; \
+	if git rev-parse "$$version" >/dev/null 2>&1; then \
+		echo "Tag $$version already exists (no releasable commits since last tag?)"; exit 1; \
+	fi; \
+	echo "Tagging $$version and pushing..."; \
+	git tag -a "$$version" -m "Release $$version" && \
+	git push origin "$$version"
