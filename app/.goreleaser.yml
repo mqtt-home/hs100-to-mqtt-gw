@@ -14,6 +14,7 @@ builds:
     goarch:
       - amd64
       - arm
+      - arm64
     goarm:
       - "7"
     env:
@@ -59,24 +60,39 @@ dockers:
       - "--platform=linux/arm/v7"
     skip_push: false
 
+  - image_templates:
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-arm64"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Major }}.{{ .Minor }}-arm64"
+      - "ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest-arm64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+    skip_push: false
+
 docker_manifests:
   - id: tag
     name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}"
     image_templates:
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-arm64
 
   - id: major-minor
     name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Major }}.{{ .Minor }}"
     image_templates:
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-arm64
 
   - id: latest
     name_template: "ghcr.io/mqtt-home/hs100-to-mqtt-gw:latest"
     image_templates:
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-amd64
       - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-armv7
+      - ghcr.io/mqtt-home/hs100-to-mqtt-gw:{{ .Tag }}-arm64
 
 changelog:
   sort: asc
